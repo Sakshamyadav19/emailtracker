@@ -1,0 +1,23 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "main.go",
+        "use": "@vercel/go"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/send",
+        "dest": "/main.go"
+      },
+      {
+        "src": "/track/(.*)",
+        "dest": "/main.go"
+      },
+      {
+        "src": "/track-count/(.*)",
+        "dest": "/main.go"
+      }
+    ]
+  }

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/Sakshamyadav19/emailtracker/config"
+	"github.com/Sakshamyadav19/emailtracker/api/config"
 )
 
 type EmailData struct {
