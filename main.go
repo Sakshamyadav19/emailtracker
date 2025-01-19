@@ -1,22 +1,29 @@
 package main
 
 import (
+	"log"
+
+	"github.com/Sakshamyadav19/emailtracker/config"
 	"github.com/Sakshamyadav19/emailtracker/handler"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
-func main(){
+func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	cfg := config.LoadConfig()
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
+
+	r.POST("/send", func(c *gin.Context) {
+		handler.HandleEmailRequest(c, cfg)
 	})
+	r.GET("/track/:id", handler.HandleTracking)
+	r.GET("/track-count/:id", handler.HandleTrackingCount)
 
-	r.POST("/send", handler.HandleEmailRequest)
-	r.GET("/track/:id", handler.HandleTracking)       
-	r.GET("/track/count/:id", handler.HandleTrackingCount)
-
-	r.Run(":8080")
-
+	r.Run(":8080") // Default listens on :8080
 }

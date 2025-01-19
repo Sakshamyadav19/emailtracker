@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/Sakshamyadav19/emailtracker/config"
 )
 
 type EmailData struct {
@@ -17,12 +18,12 @@ type EmailData struct {
 	Tracking map[string]string // Maps email addresses to tracking IDs
 }
 
-func SendEmail(smtpHost, smtpPort, authEmail, authPassword string, emailData EmailData) error {
+func SendEmail(cfg *config.Config, emailData EmailData) error {
 	toRecipients := strings.Join(emailData.To, ", ")
 	ccRecipients := strings.Join(emailData.Cc, ", ")
 
 	headers := map[string]string{
-		"From":    authEmail,
+		"From":    cfg.AuthEmail,
 		"To":      toRecipients,
 		"Cc":      ccRecipients,
 		"Subject": emailData.Subject,
@@ -40,9 +41,8 @@ func SendEmail(smtpHost, smtpPort, authEmail, authPassword string, emailData Ema
 		emailBody.WriteString("Content-Type: text/plain; charset=\"UTF-8\"\r\n\r\n")
 	}
 
-	for recipient := range emailData.Tracking {
-		fmt.Printf(`http://localhost:8080/track/%s`, emailData.Tracking[recipient])
-		trackingPixel := fmt.Sprintf(`<img src="http://localhost:8080/track/%s" style="display:none;" alt="">`, emailData.Tracking[recipient])
+	for trackingID := range emailData.Tracking {
+		trackingPixel := fmt.Sprintf(`<img src=\"%s/track/%s\" style=\"display:none;\" alt=\"\">`, cfg.BaseURL, trackingID)
 		emailData.Body += trackingPixel
 	}
 
@@ -50,10 +50,8 @@ func SendEmail(smtpHost, smtpPort, authEmail, authPassword string, emailData Ema
 
 	recipients := append(emailData.To, emailData.Cc...)
 
-	fmt.Println("I am inside")
-
-	auth := smtp.PlainAuth("", authEmail, authPassword, smtpHost)
-	return smtp.SendMail(smtpHost+":"+smtpPort, auth, authEmail, recipients, []byte(emailBody.String()))
+	auth := smtp.PlainAuth("", cfg.AuthEmail, cfg.AuthPassword, cfg.SMTPHost)
+	return smtp.SendMail(cfg.SMTPHost+":"+cfg.SMTPPort, auth, cfg.AuthEmail, recipients, []byte(emailBody.String()))
 }
 
 func GenerateTrackingIDs(recipients []string) map[string]string {

@@ -19,15 +19,16 @@ type EmailRequest struct {
 
 var tracker = store.NewTrackerStore()
 
-func HandleEmailRequest(c *gin.Context) {
+func HandleEmailRequest(c *gin.Context, cfg *config.Config) {
 	var emailReq EmailRequest
+
 	if err := c.ShouldBindJSON(&emailReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	smtpConfig := config.GetSMTPConfig()
-	tracking := service.GenerateTrackingIDs(append(emailReq.To, emailReq.Cc...))
+	recipients := append(emailReq.To, emailReq.Cc...)
+	tracking := service.GenerateTrackingIDs(recipients)
 
 	for _, trackingID := range tracking {
 		tracker.AddTrackingID(trackingID)
@@ -42,16 +43,18 @@ func HandleEmailRequest(c *gin.Context) {
 		Tracking: tracking,
 	}
 
-	err := service.SendEmail(smtpConfig.Host, smtpConfig.Port, smtpConfig.Email, smtpConfig.Password, emailData)
+	err := service.SendEmail(cfg, emailData)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email", "details": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Email sent successfully", "tracking_ids": tracking})
+	c.JSON(http.StatusOK, gin.H{
+		"message":      "Email sent successfully",
+		"tracking_ids": tracking,
+	})
 }
 
-// HandleTracking increments the open count when the tracking pixel is loaded.
 func HandleTracking(c *gin.Context) {
 	trackingID := c.Param("id")
 	if trackingID == "" {
@@ -61,12 +64,10 @@ func HandleTracking(c *gin.Context) {
 
 	tracker.IncrementOpenCount(trackingID)
 
-	// Return a 1x1 transparent GIF as the tracking pixel
 	c.Header("Content-Type", "image/gif")
 	c.String(http.StatusOK, "\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b")
 }
 
-// HandleTrackingCount returns the current open count for a tracking ID.
 func HandleTrackingCount(c *gin.Context) {
 	trackingID := c.Param("id")
 	if trackingID == "" {
@@ -75,5 +76,8 @@ func HandleTrackingCount(c *gin.Context) {
 	}
 
 	count := tracker.GetOpenCount(trackingID)
-	c.JSON(http.StatusOK, gin.H{"tracking_id": trackingID, "open_count": count})
+	c.JSON(http.StatusOK, gin.H{
+		"tracking_id": trackingID,
+		"open_count":  count,
+	})
 }
