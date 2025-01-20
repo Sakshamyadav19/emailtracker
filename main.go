@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/Sakshamyadav19/emailtracker/api/config"
-	"github.com/Sakshamyadav19/emailtracker/api/handler"
+	"github.com/Sakshamyadav19/emailtracker/config"
+	"github.com/Sakshamyadav19/emailtracker/handler"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )

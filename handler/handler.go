@@ -3,9 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"github.com/Sakshamyadav19/emailtracker/api/config"
-	"github.com/Sakshamyadav19/emailtracker/api/service"
-	"github.com/Sakshamyadav19/emailtracker/api/store"
+	"github.com/Sakshamyadav19/emailtracker/config"
+	"github.com/Sakshamyadav19/emailtracker/service"
+	"github.com/Sakshamyadav19/emailtracker/store"
 	"github.com/gin-gonic/gin"
 )
 
