@@ -42,7 +42,7 @@ func HandleEmailRequest(c *gin.Context, cfg *config.Config) {
 		IsHTML:   emailReq.IsHTML,
 		Tracking: tracking,
 	}
-
+	
 	err := service.SendEmail(cfg, emailData)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email", "details": err.Error()})
